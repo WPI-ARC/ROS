@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
 import csv
+import rospy
 import rospkg
 from math import sqrt
 
 class FeedForward:
 	def __init__(self, name):
-		print 'Feed Forward for', name, 'started'
 		self._init_params(name)
 		self._load_data()
 
@@ -17,7 +17,7 @@ class FeedForward:
 		self.ranges = []
 		self.values = []
 		self.counts = []
-		self.threshold = 0.005 # This is just arbitrarily picked
+		self.threshold = 0.0
 
 	def _load_data(self):
 		try:
@@ -29,18 +29,19 @@ class FeedForward:
 					self.counts.append(float(row[2]))
 				f.close()
 		except:
-			pass
+			rospy.loginfo(self.file+' not found')
 
 	def saveChanges(self):
-		with open(self.file, 'wb') as f:
-			writer = csv.writer(f)
-			row = [0,0,0]
-			for n in range(len(self.ranges)):
-				row[0] = self.ranges[n]
-				row[1] = self.values[n]
-				row[2] = self.counts[n]
-				writer.writerow(row)
-			f.close()
+		if len(self.ranges) > 0:
+			with open(self.file, 'wb') as f:
+				writer = csv.writer(f)
+				row = [0,0,0]
+				for n in range(len(self.ranges)):
+					row[0] = self.ranges[n]
+					row[1] = self.values[n]
+					row[2] = self.counts[n]
+					writer.writerow(row)
+				f.close()
 
 	def addReading(self, xValue, yValue):
 		if xValue in self.ranges:
@@ -55,7 +56,7 @@ class FeedForward:
 			self.counts.append(1)
 
 			# Sort by ranges
-			zipped = zip(*sorted(zip(self.ranges, self.values, self.counts)))
+			zipped = zip(*sorted(zip(self.ranges, self.values, self.counts))) #wtfmagic
 			self.ranges = list(zipped[0])
 			self.values = list(zipped[1])
 			self.counts = list(zipped[2])

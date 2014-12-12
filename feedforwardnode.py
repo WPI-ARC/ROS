@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import rospy
-import csv
 from mqp.msg import Reading
 from mqp.srv import LinearFitSrv, LinearFitSrvResponse
 from feedforward import FeedForward
@@ -9,13 +8,13 @@ from feedforward import FeedForward
 class FeedForwardEstimator:
 	def __init__(self):
 		rospy.init_node('FeedForwardEstimator')
-		rospy.loginfo('Feed Forward Estimator Node Started')
+		rospy.loginfo('Feed forward estimator node started')
 		rospy.on_shutdown(self._on_shutdown)
 		self._init_params()
 		self._init_pubsub()
 
 	def _on_shutdown(self):
-		rospy.loginfo('Feed Forward Estimator Node Shutting Down')
+		rospy.loginfo('Feed forward estimator node shutting down')
 		for ff in self.feedforwards.values():
 			ff.saveChanges()
 
@@ -27,6 +26,8 @@ class FeedForwardEstimator:
 		self.service = rospy.Service('get_linear_fit', LinearFitSrv, self.linearFitService)
 
 	def linearFitService(self, req):
+		if not req.series in self.feedforwards.keys():
+			self.createFeedForward(req.series)
 		rsp = LinearFitSrvResponse()
 		(rsp.error, rsp.ranges, rsp.slopes, rsp.offsets) = (self.feedforwards[req.series]).getSegments(req.tolerance)
 		return rsp
@@ -37,6 +38,7 @@ class FeedForwardEstimator:
 		(self.feedforwards[msg.series]).addReading(msg.xValue, msg.yValue)
 
 	def createFeedForward(self, series):
+		rospy.loginfo('Adding fitting object for '+series)
 		self.feedforwards[series] = FeedForward(series)
 
 if __name__ == '__main__':
