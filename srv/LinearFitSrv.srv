@@ -1,0 +1,7 @@
+string series
+float64 tolerance
+---
+float64 error
+float64[] ranges
+float64[] slopes
+float64[] offsets
