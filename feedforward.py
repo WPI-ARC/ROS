@@ -116,19 +116,19 @@ class FeedForward:
 			newoffsets.append(-(offsets[n]/slopes[n]))
 		return (newranges, newslopes, newoffsets)
 
-# def feedForwardMain():
-# 	ff_obj = FeedForward('pos_ff.csv')
-# 	with open('pos_calibration.csv', 'rb') as f:
-# 		reader = csv.reader(f)
-# 		for row in reader:
-# 			try:
-# 				ff_obj.addReading(float(row[1]), float(row[2]))
-# 			except:
-# 				print row
-# 	(error, ranges, slopes, offsets) = ff_obj.getSegments(0.01)
-# 	print (error, ranges, slopes, offsets)
-# 	print ff_obj.invert(ranges, slopes, offsets)
-# 	ff_obj.saveChanges()
+def feedForwardMain():
+	ff_obj = FeedForward('pos_ff')
+	with open('pos_calib.csv', 'rb') as f:
+		reader = csv.reader(f)
+		for row in reader:
+			try:
+				ff_obj.addReading(float(row[1]), float(row[3]))
+			except:
+				print row
+	(error, ranges, slopes, offsets) = ff_obj.getSegments(0.01)
+	print (error, ranges, slopes, offsets)
+	print ff_obj.invert(ranges, slopes, offsets)
+	ff_obj.saveChanges()
 
-# if __name__ == '__main__':
-# 	feedForwardMain()
+if __name__ == '__main__':
+	feedForwardMain()
