@@ -35,6 +35,7 @@ class RealtimeUDPMaster(object):
         self.mosi_port = mosi_port
         self.mosi_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.miso_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.miso_socket.setblocking(0)
         self.miso_socket.bind((master_ip_address, miso_port))
 
     def send(self, slave_ip_address, command, command_arg_bytes):
@@ -56,7 +57,9 @@ class RealtimeUDPMaster(object):
         if (command % 2) == 0:
             return None
         else:
+            self.miso_socket.setblocking(1)
             [response, response_arg_bytes] = self.recv()
+            self.miso_socket.setblocking(0)
             return [response, response_arg_bytes]
 
     def recv(self):

@@ -1,22 +1,20 @@
 #!/usr/bin/env python
 
-import rospy
 import csv
-from realtimeUDP import RealtimeUDPMaster
-from collections import deque
-from mqp.msg import Reading
-from mqp.srv import LinearFitSrv, LinearFitSrvResponse
+import rospy
+import rospkq
 
-class SoftHandMaster:
-	def __init__(self):
-		rospy.init_node('SoftHandMaster')
-		rospy.loginfo('Soft hand master node started')
-		self._init_params()
+class DataLoader:
+	def __init__(self, filename):
+		rospy.init_node('DataLoader')
+		rospy.loginfo('Data loader node started')
+		self._init_params(filename)
 		self._init_pubsub()
 
-	def _init_params(self):
-		#self.k64f = RealtimeUDPMaster()
-		#self.msgqueue = deque([])
+	def _init_params(self, filename):
+		rospack = rospkg.RosPack()
+		path = rospack.get_path('mqp')
+		self.file = path+'/data/'+name+'.csv'
 		pass
 
 	def _init_pubsub(self):

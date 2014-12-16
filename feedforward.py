@@ -47,7 +47,13 @@ class FeedForward:
 		if xValue in self.ranges:
 			# Just continue building an average
 			index = self.ranges.index(xValue)
-			self.values[index] = ((self.values[index] * self.counts[index]) + yValue) / (self.counts[index] + 1)
+			if self.counts[index] < 100:
+				self.values[index] = ((self.values[index] * self.counts[index]) + yValue) / (self.counts[index] + 1)
+				
+			# Slowly decrease the significance of older readings
+			else:
+				self.values[index] = ((self.values[index] * 99) + yValue) / 100
+
 			self.counts[index] = self.counts[index] + 1
 		else:
 			# Add a new data point to the end of the list
@@ -84,7 +90,7 @@ class FeedForward:
 		upper = self.calcDistance(slope, offset, self.ranges[maxindex+1], self.values[maxindex+1])
 
 		# Check if the error is too great AND not just a noisy reading
-		if maxdistance > self.threshold and ((upper > self.threshold) or (lower > self.threshold)):
+		if maxdistance > self.threshold and ((upper > self.threshold) or (lower > self.threshold)) and ((end - start) > 2):
 			# Split data on the point of greatest error and recurse
 			(error1, start1, slope1, offset1) = self.segment(start, maxindex)
 			(error2, start2, slope2, offset2) = self.segment(maxindex, end)
@@ -111,17 +117,17 @@ class FeedForward:
 		return (newranges, newslopes, newoffsets)
 
 # def feedForwardMain():
-# 	ff_obj = FeedForward('feedforward2.csv')
-# 	with open('jakedata.csv', 'rb') as f:
+# 	ff_obj = FeedForward('pos_ff.csv')
+# 	with open('pos_calibration.csv', 'rb') as f:
 # 		reader = csv.reader(f)
 # 		for row in reader:
 # 			try:
-# 				ff_obj.addReading(float(row[0]), float(row[1]))
+# 				ff_obj.addReading(float(row[1]), float(row[2]))
 # 			except:
 # 				print row
-# 	(ranges, slopes, offsets) = ff_obj.segment(0, len(ff_obj.ranges)-1)
-# 	print (ranges, slopes, offsets)
-# 	# print ff_obj.invert(ranges, slopes, offsets)
+# 	(error, ranges, slopes, offsets) = ff_obj.getSegments(0.01)
+# 	print (error, ranges, slopes, offsets)
+# 	print ff_obj.invert(ranges, slopes, offsets)
 # 	ff_obj.saveChanges()
 
 # if __name__ == '__main__':
