@@ -10,7 +10,6 @@
 import sys
 import socket
 import struct
-import threading
 
 
 class ReservedCommands(object):
@@ -119,11 +118,13 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         flag = sys.argv[1]
         if flag == '-m':
-            master = RealtimeUDPMaster('anette.local', 10001, 10002)
+            master = RealtimeUDPMaster('192.168.1.2', 10001, 10002)
             while True:
                 msg = raw_input("Enter text: ")
-                [code, response] = master.send('ada.local', 1, msg)
-                print(response)
+                [code, response] = master.send('192.168.1.3', 1, msg)
+                print struct.unpack('f', response[0:4])[0]
+                print struct.unpack('f', response[4:8])[0]
+                #print(response)
         elif flag == '-s':
             handler = lambda msg: [2, "echo: " + msg]
             slave = RealtimeUDPSlave('anette.local', 'ada.local', 10001, 10002, {'1':handler})

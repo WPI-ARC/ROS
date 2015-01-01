@@ -114,17 +114,30 @@ class FeedForward:
 			newranges.append((slopes[n] * ranges[n]) + offsets[n])
 			newslopes.append(1/slopes[n])
 			newoffsets.append(-(offsets[n]/slopes[n]))
+		newranges.reverse()
+		newslopes.reverse()
+		newoffsets.reverse()
 		return (newranges, newslopes, newoffsets)
+
+def doFF(position):
+	POSITION_LENGTH = 7;
+	POSITION_THRESHOLDS = [ 0.6742,  0.5878, 0.3682,  0.3275,  0.2403,  0.1640,  0.0];
+	POSITION_SLOPES     = [19.6842, 13.3633, 9.5637, 20.6475, 14.4391, 33.0176, 82.7497];
+	POSITION_OFFSETS    = [ 3.3881,  7.6499, 9.8833,  5.8019,  7.8355,  3.3713, -4.7829];
+
+	for i in range(POSITION_LENGTH):
+		if position > POSITION_THRESHOLDS[i]:
+			return (POSITION_SLOPES[i] * position) + POSITION_OFFSETS[i];
 
 def feedForwardMain():
 	ff_obj = FeedForward('pos_ff')
-	with open('pos_calib.csv', 'rb') as f:
-		reader = csv.reader(f)
-		for row in reader:
-			try:
-				ff_obj.addReading(float(row[1]), float(row[3]))
-			except:
-				print row
+	# with open('for_ff.csv', 'rb') as f:
+	# 	reader = csv.reader(f)
+	# 	for row in reader:
+	# 		try:
+	# 			ff_obj.addReading(float(row[0]) - doFF(float(row[2])), float(row[1]))
+	# 		except:
+	# 			print row
 	(error, ranges, slopes, offsets) = ff_obj.getSegments(0.01)
 	print (error, ranges, slopes, offsets)
 	print ff_obj.invert(ranges, slopes, offsets)
