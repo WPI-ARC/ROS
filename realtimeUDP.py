@@ -11,23 +11,6 @@ import sys
 import socket
 import struct
 
-
-class ReservedCommands(object):
-    pass
-
-class CommandReservedException(Exception):
-    pass
-
-class CommandArgsTooLargeException(Exception):
-    pass
-
-class ResponseArgsTooLargeException(Exception):
-    pass
-
-class CommandNotRegisteredException(Exception):
-    pass
-
-
 class RealtimeUDPMaster(object):
 
     def __init__(self, master_ip_address, mosi_port, miso_port):
@@ -68,52 +51,6 @@ class RealtimeUDPMaster(object):
         response_arg_bytes = recv_bytes[5:(5 + response_arg_len)]
         return [response, response_arg_bytes]
 
-class RealtimeUDPSlave(object):
-
-    def __init__(self, master_ip_address, slave_ip_address, mosi_port, miso_port, registered_commands={}):
-        '''
-        In the python reference version, commands are registered in a dictionary of str(int command):command_callback_fn
-        In other languages, commands can be registered with map<int command, (bool *)command_callback_fn(vector& arg_bytes, vector& ret_bytes)>
-        '''
-        self.master_ip_address = master_ip_address
-        self.miso_port = miso_port
-        self.miso_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.mosi_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.mosi_socket.bind((slave_ip_address, mosi_port))
-        self.command_dict = registered_commands
-
-    def loop(self):
-        while True:
-            (command_bytes, address) = self.mosi_socket.recvfrom(256)
-            (command,) = struct.unpack('!I', command_bytes[0:4])
-            (command_arg_len,) = struct.unpack('!B', command_bytes[4:5])
-            command_arg_bytes = command_bytes[5:(5 + command_arg_len)]
-            [response, response_arg_bytes] = self.process_command(command, command_arg_bytes)
-            self.reply(response, response_arg_bytes)
-
-    def reply(self, response, response_arg_bytes):
-        if len(response_arg_bytes) > 251:
-            raise ResponseArgsTooLargeException("Response arg bytes exceeds limit of 251 bytes")
-        # Make the new frame of 256 bytes
-        send_bytes = bytearray(256)
-        # Set the first 4 bytes as the command
-        send_bytes[0:4] = struct.pack('!I', response)
-        # Set the next byte as the len of the arg bytes
-        send_bytes[4:5] = struct.pack('!B', len(response_arg_bytes))
-        # Set the arg bytes
-        send_bytes[5:(5 + len(response_arg_bytes))] = response_arg_bytes
-        # The rest of the frame is already filled with zeros, se we don't need to set it
-        # Send the frame to the master address
-        self.miso_socket.sendto(send_bytes, (self.master_ip_address, self.miso_port))
-
-    def process_command(self, command, command_arg_bytes):
-        try:
-            [response, response_arg_bytes] = self.command_dict[str(command)](command_arg_bytes)
-            return [response, response_arg_bytes]
-        except KeyError as ex:
-            print("Command " + str(command) + " not registered")
-            return [0, '']
-
 if __name__ == '__main__':
     if len(sys.argv) > 1:
         flag = sys.argv[1]
@@ -125,11 +62,7 @@ if __name__ == '__main__':
                 print struct.unpack('f', response[0:4])[0]
                 print struct.unpack('f', response[4:8])[0]
                 #print(response)
-        elif flag == '-s':
-            handler = lambda msg: [2, "echo: " + msg]
-            slave = RealtimeUDPSlave('anette.local', 'ada.local', 10001, 10002, {'1':handler})
-            slave.loop()
         else:
-            print("Invalid flag - needs -m or -s for testing")
+            print("Invalid flag - needs -m for testing")
     else:
-        print("Needs a flag -m or -s for testing")
+        print("Needs a flag -m for testing")
