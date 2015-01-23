@@ -11,6 +11,9 @@ import sys
 import socket
 import struct
 
+class CommandArgsTooLargeException(Exception):
+    pass
+
 class RealtimeUDPMaster(object):
 
     def __init__(self, master_ip_address, mosi_port, miso_port):

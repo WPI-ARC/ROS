@@ -39,7 +39,7 @@ class FeedForwardEstimator:
 		(self.feedforwards[msg.series]).addReading(msg.xValue, msg.yValue)
 
 	def createFeedForward(self, series):
-		rospy.loginfo('Adding fitting object for '+series)
+		rospy.loginfo('Adding fitting object for ' + series)
 		self.feedforwards[series] = FeedForward(series)
 
 if __name__ == '__main__':
