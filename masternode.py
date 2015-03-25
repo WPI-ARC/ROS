@@ -20,8 +20,7 @@ class SoftHandMaster:
 
 	def _init_pubsub(self):
 		self.pub_readings = rospy.Publisher('/softhand/readings', Reading)
-		# pub readings
-		# pub hand state
+		self.sub_setpoints = rospy.Subscriber('/softhand/setpoints', HandSetpoint, self.setSetpoints, queue_size=1, buf_size=32767)
 
 	def loop(self):
 		while not rospy.is_shutdown():
@@ -50,11 +49,26 @@ class SoftHandMaster:
 	# Recieve finger state
 
 	def addReadings(self, response):
+		byte_key = struct.unpack('i', response[0:4])
 		msg = Reading()
-		msg.series = 'pos_ff'
-		msg.xValue = struct.unpack('f', response[0:4])[0]
-		msg.yValue = struct.unpack('f', response[4:8])[0]
+		msg.series = 'pre_ff'
+		msg.xValue = struct.unpack('f', response[0:4])[0] # Dutycycle
+		msg.yValue = struct.unpack('f', response[4:8])[0] # Raw Pressure
 		master.pub_readings.publish(msg)
+
+		msg.series = 'pos_ff'
+		msg.xValue = struct.unpack('f', response[8:12])[0] # Pressure
+		msg.yValue = struct.unpack('f', response[12:16])[0] # Position
+		master.pub_readings.publish(msg)
+
+		msg.series = 'for_ff'
+		msg.xValue = struct.unpack('f', response[8:12])[0] # Pressure - (Position_ff)
+		msg.yValue = struct.unpack('f', response[16:20])[0] # Force
+		master.pub_readings.publish(msg)
+
+# Calibrate pressure
+# Calibrate position
+# Calibrate force
 
 if __name__ == '__main__':
 	master = SoftHandMaster()

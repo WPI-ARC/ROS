@@ -39,13 +39,13 @@ class RealtimeUDPMaster(object):
         self.mosi_socket.sendto(send_bytes, (slave_ip_address, self.mosi_port))
         # Check to see if we need to wait for data to be returned
         # Read and Write/Read commmands are all odd (LSb = 1)
-        if (command % 2) == 0:
-            return None
-        else:
-            self.miso_socket.setblocking(1)
-            [response, response_arg_bytes] = self.recv()
-            self.miso_socket.setblocking(0)
-            return [response, response_arg_bytes]
+        # if (command % 2) == 0:
+        return None
+        # else:
+        #     self.miso_socket.setblocking(1)
+        #     [response, response_arg_bytes] = self.recv()
+        #     self.miso_socket.setblocking(0)
+        #     return [response, response_arg_bytes]
 
     def recv(self):
         (recv_bytes, address) = self.miso_socket.recvfrom(256)

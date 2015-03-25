@@ -17,6 +17,8 @@ class FeedForward:
 		self.ranges = []
 		self.values = []
 		self.counts = []
+		self.maxs = []
+		self.mins = []
 		self.threshold = 0.0
 
 	def _load_data(self):
@@ -27,6 +29,8 @@ class FeedForward:
 					self.ranges.append(float(row[0]))
 					self.values.append(float(row[1]))
 					self.counts.append(float(row[2]))
+					self.maxs.append(float(row[3]))
+					self.mins.append(float(row[4]))
 				f.close()
 		except:
 			rospy.loginfo(self.file+' not found')
@@ -35,11 +39,13 @@ class FeedForward:
 		if len(self.ranges) > 0:
 			with open(self.file, 'wb') as f:
 				writer = csv.writer(f)
-				row = [0,0,0]
+				row = [0,0,0,0,0]
 				for n in range(len(self.ranges)):
 					row[0] = self.ranges[n]
 					row[1] = self.values[n]
 					row[2] = self.counts[n]
+					row[3] = self.maxs[n]
+					row[4] = self.mins[n]
 					writer.writerow(row)
 				f.close()
 
@@ -47,12 +53,16 @@ class FeedForward:
 		if xValue in self.ranges:
 			# Just continue building an average
 			index = self.ranges.index(xValue)
-			if self.counts[index] < 100:
-				self.values[index] = ((self.values[index] * self.counts[index]) + yValue) / (self.counts[index] + 1)
+			# if self.counts[index] < 100:
+			self.values[index] = ((self.values[index] * self.counts[index]) + yValue) / (self.counts[index] + 1)
 				
 			# Slowly decrease the significance of older readings
-			else:
-				self.values[index] = ((self.values[index] * 99) + yValue) / 100
+			# else:
+			# 	self.values[index] = ((self.values[index] * 99) + yValue) / 100
+			if yValue > self.maxs[index]:
+				self.maxs[index] = yValue
+			elif yValue < self.mins[index]:
+				self.mins[index] = yValue
 
 			self.counts[index] = self.counts[index] + 1
 		else:
@@ -60,12 +70,16 @@ class FeedForward:
 			self.ranges.append(xValue)
 			self.values.append(yValue)
 			self.counts.append(1)
+			self.maxs.append(yValue)
+			self.mins.append(yValue)
 
 			# Sort by ranges
-			zipped = zip(*sorted(zip(self.ranges, self.values, self.counts))) #wtfmagic
+			zipped = zip(*sorted(zip(self.ranges, self.values, self.counts, self.maxs, self.mins))) #wtfmagic
 			self.ranges = list(zipped[0])
 			self.values = list(zipped[1])
 			self.counts = list(zipped[2])
+			self.maxs = list(zipped[3])
+			self.mins = list(zipped[4])
 
 	def getSegments(self, tolerance):
 		self.threshold = tolerance
@@ -118,16 +132,6 @@ class FeedForward:
 		newslopes.reverse()
 		newoffsets.reverse()
 		return (newranges, newslopes, newoffsets)
-
-def doFF(position):
-	POSITION_LENGTH = 7;
-	POSITION_THRESHOLDS = [ 0.6742,  0.5878, 0.3682,  0.3275,  0.2403,  0.1640,  0.0];
-	POSITION_SLOPES     = [19.6842, 13.3633, 9.5637, 20.6475, 14.4391, 33.0176, 82.7497];
-	POSITION_OFFSETS    = [ 3.3881,  7.6499, 9.8833,  5.8019,  7.8355,  3.3713, -4.7829];
-
-	for i in range(POSITION_LENGTH):
-		if position > POSITION_THRESHOLDS[i]:
-			return (POSITION_SLOPES[i] * position) + POSITION_OFFSETS[i];
 
 def feedForwardMain():
 	ff_obj = FeedForward('pos_ff')

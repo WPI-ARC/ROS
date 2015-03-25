@@ -2,7 +2,7 @@
 
 import csv
 import rospy
-import rospkq
+# import rospkq
 
 class DataLoader:
 	def __init__(self, filename):
@@ -36,15 +36,14 @@ class DataLoader:
 	# Recieve finger state
 
 if __name__ == '__main__':
-	master = SoftHandMaster()
+	# master = SoftHandMaster()
 	#master.loop()
-	with open('pos_calibration.csv', 'rb') as f:
+	with open('pressure_calib.csv', 'rb') as f:
 		reader = csv.reader(f)
-		rowcount = len(reader)
 		for row in reader:
 			try:
 				msg = Reading()
-				msg.series = 'pos_ff'
+				msg.series = 'pre_ff'
 				msg.xValue = float(row[1])
 				msg.yValue = float(row[2])
 				master.pub_readings.publish(msg)

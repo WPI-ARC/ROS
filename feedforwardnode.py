@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import csv
 import rospy
 from mqp.msg import Reading
 from mqp.srv import LinearFitSrv, LinearFitSrvResponse
@@ -45,5 +46,28 @@ class FeedForwardEstimator:
 if __name__ == '__main__':
 	feedforward = FeedForwardEstimator()
 
+	# with open('calibration4.csv', 'rb') as f:
+	# 	reader = csv.reader(f)
+	# 	for row in reader:
+	# 		try:
+	# 			msg = Reading()
+
+	# 			msg.series = '4pre_ff'
+	# 			msg.xValue = round(float(row[1]), 2) # duty
+	# 			msg.yValue = round(float(row[2]), 3) # pressure
+	# 			feedforward.addReading(msg)
+
+	# 			msg.series = '4pos_ff'
+	# 			msg.xValue = round(float(row[2]), 2) # pressure
+	# 			msg.yValue = round(float(row[3]), 3) # position
+	# 			feedforward.addReading(msg)
+
+	# # 			msg.series = '0for_ff'
+	# # 			msg.xValue = round(float(row[2]), 2) # pressure
+	# # 			msg.yValue = round(float(row[4]), 3) # force
+	# # 			feedforward.addReading(msg)
+	# 		except:
+	# 			print 'Bad row: ', row
+	print "Done"
 	while not rospy.is_shutdown():
 		rospy.spin()
