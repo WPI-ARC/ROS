@@ -46,18 +46,18 @@ class FeedForwardEstimator:
 if __name__ == '__main__':
 	feedforward = FeedForwardEstimator()
 
-	# with open('calibration4.csv', 'rb') as f:
+	# with open('demo_calibration.csv', 'rb') as f:
 	# 	reader = csv.reader(f)
 	# 	for row in reader:
 	# 		try:
 	# 			msg = Reading()
 
-	# 			msg.series = '4pre_ff'
+	# 			msg.series = 'dem_pre_ff'
 	# 			msg.xValue = round(float(row[1]), 2) # duty
 	# 			msg.yValue = round(float(row[2]), 3) # pressure
 	# 			feedforward.addReading(msg)
 
-	# 			msg.series = '4pos_ff'
+	# 			msg.series = 'dem_pos_ff'
 	# 			msg.xValue = round(float(row[2]), 2) # pressure
 	# 			msg.yValue = round(float(row[3]), 3) # position
 	# 			feedforward.addReading(msg)
