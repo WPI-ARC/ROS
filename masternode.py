@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
 import rospy
-import csv
+import csv, struct
 from realtimeUDP import RealtimeUDPMaster
 from collections import deque
-from mqp.msg import Reading
+from mqp.msg import *
 from mqp.srv import LinearFitSrv, LinearFitSrvResponse
 
 class SoftHandMaster:
@@ -20,21 +20,23 @@ class SoftHandMaster:
 
 	def _init_pubsub(self):
 		self.pub_readings = rospy.Publisher('/softhand/readings', Reading)
-		self.sub_setpoints = rospy.Subscriber('/softhand/setpoints', HandSetpoint, self.setSetpoints, queue_size=1, buf_size=32767)
+		self.sub_setpoints = rospy.Subscriber('/softhand/setpoints', HandSetpoint, self.setSetpoints, queue_size=1)
 
 	def loop(self):
 		while not rospy.is_shutdown():
 			try:
-				[command, response] = self.k64f.recv()
-				self.processFrame(command, response)
-			except(e):
+				pass
+				# [command, response] = self.k64f.recv()
+				# self.processFrame(command, response)
+			except Exception as e:
 				print e
 
 			try:
 				(cmd, msg) = self.msgqueue.pop()
 				self.k64f.send('192.168.1.3', cmd, msg)
-			except(e):
-				print e
+			except IndexError as e:
+				pass
+				# print e
 
 	def processFrame(self, command, response):
 		if command == 2:
@@ -42,6 +44,14 @@ class SoftHandMaster:
 		else:
 			pass
 		
+	def setSetpoints(self, msg):
+		response = bytearray(96)
+		index = 0
+		for finger in msg.fingers:
+			print finger
+			response[index:index+24] = struct.pack("fffffbxxx", finger.dutycycle, finger.pressure, finger.force, finger.position, finger.jointangle, finger.controlmode)
+			index += 24
+		self.msgqueue.appendleft((1, response))
 	# Send readings to linear fit
 	# Get linear fits
 	# Send data to grasp evaluator
